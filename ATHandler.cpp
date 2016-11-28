@@ -63,7 +63,7 @@
 		pending_cnt = 0;
 	}
 	
-		
+			
 	/* FEED */
 	/********/
 	/* 
@@ -72,8 +72,9 @@
 	void ATHandler::feed(char newData){
 		static char prevData;
 		static bool cmdJustArrived;
+		char* auxptr;
 
-		if (putptr == getptr && pending_cnt > 0){
+		if (getptr == putptr && pending_cnt > 0){
 			// If PUT pointer reaches GET pointer and there are pending commands to be processed then
 			// it means that an overflow is occurring (there's no more room in the buffer for the
 			// incomming serial data). So I won't insert the newData in the buffer
@@ -83,9 +84,10 @@
 		}else{
 			
 			*putptr = newData;     				// Add newData to the RxBuffer
-			// Determines if an "end-of-command" : <CR> <LF> equals "\r\n"
 			
-			if (prevData == '\r' && newData == '\n'){
+			// Determines if an "end-of-command" : <CR> <LF> equals "\r\n"
+			// Added a new condition: If data is > then treat it as a new command has arrive
+			if ((prevData == '\r' && newData == '\n') || newData == '>'){
 				// If "\rn" has arrived then it means a new command has just arrived. That is if there
 				// hasn't just arrive a prior command, because AT COMMANS starts and end with "\r\n" and
 				// if we don't put that filter we may think a command has arrived but actually it would
@@ -93,7 +95,7 @@
 				#ifdef AT_HANDLER_DEBUG_ENABLE
 					Serial.println("AT HANDLER new <CR><LF>");
 				#endif
-				if (!cmdJustArrived){
+				if (!cmdJustArrived || newData == '>'){
 					pending_cnt++;              // Increase pending command count
 					#ifdef AT_HANDLER_DEBUG_ENABLE
 						Serial.println("AT HANDLER new command pending");
@@ -111,21 +113,43 @@
 
 				cmdJustArrived = true;			// Indicates that an AT Command has arrived
 
-				// Decreases PUT pointer (circular bgffer)
-				if (putptr == cmd_buffer){
-					putptr = cmd_buffer + AT_HANDLER_RxBuffer_Size - 1;
+				// When the command arrives as <CR><LF> then I need to decrease pointer in order to
+				// overwrite <CR> and set ii to 0x00. But if the command arrives as '>' then I need
+				// to increase pointer and add 0x00
+				if (newData == '>'){
+					// Increase PUT pointer (circular buffer)
+					auxptr = putptr;			// Save a copy of the pointer
+					if (putptr == cmd_buffer + AT_HANDLER_RxBuffer_Size - 1){
+						putptr = cmd_buffer;
+					}else{
+						putptr++;
+					}
+					
+					// If after increasing the PUT pointer I reach the GET pointer => That's not right
+					// overflow is ocurring. RollBack to prevent it
+					if (getptr == putptr){
+						putptr = auxptr;
+						#ifdef AT_HANDLER_DEBUG_ENABLE
+							Serial.println("AT HANDLER rollback no room");
+						#endif
+					}
+					
 				}else{
-					putptr--;
+					// Decreases PUT pointer (circular buffer)
+					if (putptr == cmd_buffer){
+						putptr = cmd_buffer + AT_HANDLER_RxBuffer_Size - 1;
+					}else{
+						putptr--;
+					}
 				}
-
 				*putptr = 0x00;               	// Adds a new command end (string end)
 
-				}else{
-					// If newData is a "\r" I won't clear the justArrived flag because this could
-					// be the beginning of a new AT Command. Otherwise, clear the flag
-					if (newData != '\r'){
-						cmdJustArrived = false; 
-					}
+			}else{
+				// If newData is a "\r" I won't clear the justArrived flag because this could
+				// be the beginning of a new AT Command. Otherwise, clear the flag
+				if (newData != '\r'){
+					cmdJustArrived = false; 
+				}
 			}
 
 			prevData = *putptr;            		// Stores this data so it would be next-data's previous data
@@ -194,7 +218,7 @@
 	 * This is a MASK of the match_N method using the maximum interation count
 	 */
 	bool ATHandler::match(char* expected){
-		return(match_N(expected, AT_HANDLER_RxBuffer_Size);
+		return(match_N(expected, AT_HANDLER_RxBuffer_Size));
 	}
 	
 	

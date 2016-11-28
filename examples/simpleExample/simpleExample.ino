@@ -44,7 +44,7 @@ void loop() {
 
   // Just to test it, send a dummy AT Command and wait for response
   if (!waitingResponse){
-    waitingResponse = true
+    waitingResponse = true;
     cmdSerial.println("AT");
   }
 
@@ -57,7 +57,7 @@ void loop() {
     
     // After processing the response, move to the next one
     atHandler.moveNext();
-    waitingResponse = false
+    waitingResponse = false;
   }
 
   // If no-one handles the incoming response, because it's not what's desired
