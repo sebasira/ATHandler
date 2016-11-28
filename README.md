@@ -52,7 +52,7 @@ In the .h file you will encounter 2 configurations. One of them is the receive b
 And the second configuration is a label to enable debug information over hardware serial.
 
 ### To-Do
-I'm still working on it, one thing that's missing is the ability to handle PROMPT when request to send SMS or Data. Also I've to test it when receiving SMS text or Data.
+I've to test it when receiving SMS text or Data.
 
 It was designed to deal with responses and URC, because sending an AT Command is very easy just using a println.
 
