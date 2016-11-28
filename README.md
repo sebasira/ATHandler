@@ -27,7 +27,7 @@ And then you have to feed it with every data that arrives from the serial interf
   }
 ~~~~
 
-To check for the desired answer or URC just call the match function over the method. There's also a match_N if you wish to test only a few characters.
+To check for the desired answer or URC just call the match function over the object. There's also a match_N if you wish to test only a few characters.
 And finally when the expected response or URC arrives, user must move to the next to deal with the next one. This method should also be called if received a command that no-one was expecting.
 ~~~~
   if (atHandler.match("OK")){
