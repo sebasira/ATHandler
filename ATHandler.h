@@ -46,7 +46,7 @@
 	#define AT_HANDLER_RxBuffer_Size      80
 	
 	// UnCommrnt in order to have Debug Information over Serial port @9600bps
-	#define AT_HANDLER_DEBUG_ENABLE
+	//#define AT_HANDLER_DEBUG_ENABLE
 
     
     /* CLASS */

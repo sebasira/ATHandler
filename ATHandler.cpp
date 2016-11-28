@@ -193,8 +193,16 @@
 			do{
 				if (*getptr_copy == *expected){
 					match = true;
+					#ifdef AT_HANDLER_DEBUG_ENABLE
+						Serial.print("AT HANDLER matched: ");
+						Serial.println(*getptr_copy);
+					#endif
 				}else{
 					match = false;
+					#ifdef AT_HANDLER_DEBUG_ENABLE
+						Serial.print("AT HANDLER don't match: ");
+						Serial.println(*getptr_copy);
+					#endif
 				}
 
 				getptr_copy++;
