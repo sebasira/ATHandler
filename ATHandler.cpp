@@ -111,6 +111,16 @@
 			#endif
 		}else{
 			
+			// When some modules start up (power up) they send garbage over the serial. Sometimes
+			// that garbage is 0x00 (a termination character). This should never be present in
+			// the buffer unless it is a command end. So if 0x00 arrives, I will transform it to 0xFF
+			if (newData == 0x00){
+				#ifdef AT_HANDLER_DEBUG_ENABLE
+					Serial.println(F("AT HANDLER garbage received!! -> 0xFF"));
+				#endif
+				newData = 0xFF;
+			}
+			
 			*putptr = newData;     				// Add newData to the RxBuffer
 			
 			// Determines if an "end-of-command" : <CR> <LF> equals "\r\n"
