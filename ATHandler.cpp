@@ -55,13 +55,41 @@
 	void ATHandler::begin(void){
 		#ifdef AT_HANDLER_DEBUG_ENABLE
 			Serial.begin(9600);
-			Serial.println("AT HANDLER created");
+			Serial.println(F("AT HANDLER created"));
 		#endif
 		putptr = cmd_buffer;
 		getptr = cmd_buffer;
 	  
 		pending_cnt = 0;
 	}
+	
+	
+	/* GET POINTER COPY */
+	/********************/
+	/*
+	 * It returns a duplicate of the current GET pointer, so user can used it to
+	 * retrieve specific data from the buffer
+	 */
+	char* ATHandler::copyGET(void){
+		 return(getptr);
+	}
+	 
+	 
+	 /* INCREASE POINTER */
+	 /********************/
+	 /*
+	  * Performs an increment on the given pointer, treating it as a circular buffer pointer
+	  */
+	char* ATHandler::increasePointer(char* ptr){
+		if (ptr == cmd_buffer + AT_HANDLER_RxBuffer_Size - 1){
+			ptr = cmd_buffer;
+		}else{
+			ptr++;
+		}
+		
+		return ptr;
+	}
+	  
 	
 			
 	/* FEED */
@@ -79,7 +107,7 @@
 			// it means that an overflow is occurring (there's no more room in the buffer for the
 			// incomming serial data). So I won't insert the newData in the buffer
 			#ifdef AT_HANDLER_DEBUG_ENABLE
-				Serial.println("AT HANDLER no room for more data");
+				Serial.println(F("AT HANDLER no room for more data"));
 			#endif
 		}else{
 			
@@ -93,12 +121,12 @@
 				// if we don't put that filter we may think a command has arrived but actually it would
 				// mean that a command is stating
 				#ifdef AT_HANDLER_DEBUG_ENABLE
-					Serial.println("AT HANDLER new <CR><LF>");
+					Serial.println(F("AT HANDLER new <CR><LF>"));
 				#endif
 				if (!cmdJustArrived || newData == '>'){
 					pending_cnt++;              // Increase pending command count
 					#ifdef AT_HANDLER_DEBUG_ENABLE
-						Serial.println("AT HANDLER new command pending");
+						Serial.println(F("AT HANDLER new command pending"));
 					#endif
 				}else{
 					// As said above if a new "\r\n" arrived right after the previous one, then it
@@ -130,7 +158,7 @@
 					if (getptr == putptr){
 						putptr = auxptr;
 						#ifdef AT_HANDLER_DEBUG_ENABLE
-							Serial.println("AT HANDLER rollback no room");
+							Serial.println(F("AT HANDLER rollback no room"));
 						#endif
 					}
 					
@@ -157,8 +185,11 @@
 			// Increase PUT pointer (circular buffer)
 			if (putptr == cmd_buffer + AT_HANDLER_RxBuffer_Size - 1){
 				putptr = cmd_buffer;
+				//Serial.println(F("----------------- PUT ROLL OVER"));
 			}else{
 				putptr++;
+				//Serial.print(F("PUT "));
+				//Serial.println(putptr - cmd_buffer);
 			}
 		}
 	}
@@ -194,13 +225,13 @@
 				if (*getptr_copy == *expected){
 					match = true;
 					#ifdef AT_HANDLER_DEBUG_ENABLE
-						Serial.print("AT HANDLER matched: ");
+						Serial.print(F("AT HANDLER matched: "));
 						Serial.println(*getptr_copy);
 					#endif
 				}else{
 					match = false;
 					#ifdef AT_HANDLER_DEBUG_ENABLE
-						Serial.print("AT HANDLER don't match: ");
+						Serial.print(F("AT HANDLER don't match: "));
 						Serial.println(*getptr_copy);
 					#endif
 				}
@@ -237,20 +268,30 @@
 	 * Moves the GET pointer to the next command
 	 */
 	void ATHandler::moveNext(void){
-	if (pending_cnt > 0){
-		pending_cnt--;
+		if (pending_cnt > 0){
+			pending_cnt--;
+			
+			#ifdef AT_HANDLER_DEBUG_ENABLE
+				Serial.print(F("AT HANDLER pending: "));
+				Serial.println(pending_cnt);
+			#endif
 
-		while(*getptr != 0x00){
+			while(*getptr != 0x00){
+				getptr++;
+				if (getptr == cmd_buffer + AT_HANDLER_RxBuffer_Size){
+					getptr = cmd_buffer;
+					//Serial.println(F("----------------- GET ROLL OVER 2"));
+				}
+			}
+			
+			// One more increment to skip 0x00
 			getptr++;
 			if (getptr == cmd_buffer + AT_HANDLER_RxBuffer_Size){
 				getptr = cmd_buffer;
+				//Serial.println(F("----------------- GET ROLL OVER"));
 			}
-		}
-		
-		// One more increment to skip 0x00
-		getptr++;
-		if (getptr == cmd_buffer + AT_HANDLER_RxBuffer_Size){
-			getptr = cmd_buffer;
+			
+			//Serial.print(F("GET "));
+			//Serial.println(getptr - cmd_buffer);
 		}
 	}
-}

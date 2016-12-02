@@ -43,9 +43,9 @@
     /* CONFIGS */
     /***********/
     // Size of Rx Serial Buffer
-	#define AT_HANDLER_RxBuffer_Size      80
+	#define AT_HANDLER_RxBuffer_Size      120
 	
-	// UnCommrnt in order to have Debug Information over Serial port @9600bps
+	// UnComment in order to have Debug Information over Serial port @9600bps
 	//#define AT_HANDLER_DEBUG_ENABLE
 
     
@@ -55,6 +55,8 @@
       public:
         ATHandler(void);
 		void begin(void);
+		char* copyGET(void);
+		char*  increasePointer(char* ptr);
 		void feed(char newData);
         bool chkPending(void);
 		bool match(char* expected);
