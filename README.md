@@ -16,7 +16,7 @@ To operate with it you first need to create an ATHandler object
 This object needs to be initialized in the setup
 ~~~~
 void setup(){
-  atHandler.begin;
+  atHandler.begin();
 }
 ~~~~
 
